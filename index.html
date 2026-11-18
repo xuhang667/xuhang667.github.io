@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="only light">
 <meta name="nightmode" content="disable">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest" id="manifestLink">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,7 +24,11 @@
     --page:#f1f1f3;
     --text:#111;
     --sub:#8a8a8a;
-    --radius:12px;
+    --radius:14px;
+    /* 顶栏配色：浅色模式白底黑字，深色模式黑底白字（跟随系统） */
+    --topbar-bg:#ffffff;
+    --topbar-fg:#111111;
+    --topbar-line:#ececec;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html{color-scheme:only light;-webkit-text-size-adjust:100%}
@@ -44,73 +49,97 @@
 
   /* ============ 顶栏 ============ */
   .topbar{
-    position:sticky;top:0;z-index:20;height:58px;background:#000;color:#fff;
+    position:sticky;top:0;z-index:20;height:58px;
+    background:var(--topbar-bg);color:var(--topbar-fg);
+    transition:background .2s,color .2s;
     display:flex;align-items:center;
     padding:0 6px;
     /* 全屏时系统状态栏被隐藏，用 --statusbar 补出同样的黑边高度 */
     padding-top:var(--statusbar, 29px);   /* 与钉钉真机一致：状态栏 29 + 标题栏 58 = 87 */
     box-sizing:content-box;
   }
+  .topbar{justify-content:space-between}
+  .topbar .left{display:flex;align-items:center}
   .topbar .back{width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-  .topbar .title{flex:1;text-align:center;font-size:14px;font-weight:500;letter-spacing:.5px}
+  .topbar .title{
+    position:absolute;left:0;right:0;top:var(--statusbar, 29px);height:58px;
+    display:flex;align-items:center;justify-content:center;pointer-events:none;
+    font-size:16.5px;font-weight:500;letter-spacing:.5px;
+  }
   .topbar .right{display:flex;align-items:center}
   .topbar .ico{width:40px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.95}
+  .topbar{border-bottom:1px solid var(--topbar-line)}
+  @media (prefers-color-scheme: dark){
+    :root{
+      --topbar-bg:#000000;
+      --topbar-fg:#ffffff;
+      --topbar-line:transparent;
+    }
+  }
   svg{display:block}
 
   /* ============ 横幅 ============ */
-  .banner{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+  .banner{
+    display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;
+    /* 真机横幅比例 1080:388，比原图略扁，用 cover 裁一点保持比例一致 */
+    aspect-ratio:1080/400;object-fit:cover;object-position:center;
+  }
 
   /* ============ 标签 ============ */
   .tabs{display:flex;background:#fff;border-bottom:1px solid #f0f0f0;position:sticky;z-index:15;
     top:calc(58px + var(--statusbar, 29px))}
   .tab{
-    flex:1;height:48px;display:flex;align-items:center;justify-content:center;
-    font-size:12.5px;color:#666;position:relative;cursor:pointer;
+    flex:1;height:43px;display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:700;color:#7c7c7c;position:relative;cursor:pointer;
   }
-  .tab.active{color:var(--blue);font-weight:600}
+  .tab.active{color:var(--blue)}   /* 字重两个都 700，只有颜色不同 */
   .tab.active::after{
-    content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-    width:56px;height:3px;border-radius:2px;background:var(--blue);
+    content:"";position:absolute;bottom:0;left:5px;right:0;
+    height:3px;border-radius:1px;background:var(--blue);
   }
 
   /* ============ 日期条 ============ */
-  .dates{display:flex;gap:2px;padding:8px 8px 4px;background:#fff;overflow-x:auto}
+  .dates{display:flex;gap:0;padding:9px 6px 10px;background:#fff;overflow-x:auto}
   .dates::-webkit-scrollbar{display:none}
   .day{
-    flex:1 0 44px;min-width:44px;padding:5px 2px 6px;border-radius:8px;
-    display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;
-    color:#666;transition:background .15s;
+    flex:1;min-width:0;display:flex;justify-content:center;cursor:pointer;color:#666;
   }
-  .day .w{font-size:9.5px;line-height:13px}
-  .day .d{font-size:9.5px;line-height:13px;color:#222}
-  .day .s{font-size:9px;line-height:12px;color:var(--blue)}
-  .day.sel{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(48,166,240,.35)}
+  .day .box{
+    width:34px;padding:4px 0;border-radius:9px;
+    display:flex;flex-direction:column;align-items:center;gap:0;
+    transition:background .15s;
+  }
+  .day .w{font-size:11px;line-height:15px;font-weight:400;color:#333}   /* 周几：常规字重、深灰 */
+  .day .d{font-size:10px;line-height:14px;color:#9a9a9a}                /* 日期：浅灰、略小 */
+  .day .s{font-size:9.5px;line-height:13px;color:var(--blue)}
+  .day.sel .w,.day.sel .d,.day.sel .s{color:#fff}
+  .day.sel .box{background:var(--blue);box-shadow:0 2px 8px rgba(48,166,240,.35)}
   .day.sel .d,.day.sel .s{color:#fff}
 
   /* ============ 卡片列表 ============ */
-  .list{padding:8px 18px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px;background:var(--page)}
+  .list{padding:21px 21px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;background:var(--page)}
   .card{
-    background:#fff;border-radius:var(--radius);padding:18px 16px 16px;
-    box-shadow:0 1px 3px rgba(0,0,0,.06);
+    background:#fff;border-radius:var(--radius);padding:12px 16px 28px;
+    box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;
   }
-  .card .head{display:flex;align-items:center;gap:11px;margin-bottom:22px}
+  .card .head{display:flex;align-items:center;gap:11px;margin-bottom:19px}
   .dot{width:6px;height:6px;border-radius:50%;background:#f5a623;box-shadow:0 0 0 3px rgba(245,166,35,.18)}
   .name{font-size:12.5px;font-weight:600;letter-spacing:.2px;line-height:18px}
   .pill{
-    margin-left:auto;min-width:88px;height:19px;padding:0 10px;border-radius:10px;
+    margin-left:auto;margin-right:-16px;min-width:88px;height:20px;padding:0 10px;border-radius:10px 0 0 10px;
     display:flex;align-items:center;justify-content:center;
-    font-size:9.5px;color:#fff;background:var(--grey);white-space:nowrap;
+    font-size:10px;color:#fff;background:var(--grey);white-space:nowrap;
   }
   .pill.on{background:var(--blue)}
-  .time{display:flex;align-items:center;padding:0 2px;font-size:12px;line-height:18px;color:#111}
-  .time .t{width:64px;letter-spacing:.2px}
+  .time{display:flex;align-items:center;padding:0 31px 0 17px;font-size:12px;line-height:18px;color:#111}
+  .time .t{width:58px;letter-spacing:.2px}
   .time .t:last-child{text-align:right}
   .arrow{flex:1;display:flex;align-items:center;padding:0 10px}
   .foot{
-    margin-top:22px;background:var(--bar);border-radius:5px;height:35px;
-    display:flex;align-items:center;padding:0 12px;font-size:12.5px;
+    margin-top:19px;background:var(--bar);border-radius:5px;height:34px;
+    display:flex;align-items:center;padding:0 12px 0 35px;font-size:12.5px;
   }
-  .foot .gym{width:82px;white-space:nowrap}
+  .foot .gym{width:111px;white-space:nowrap}
   .foot .rest{flex:1;white-space:nowrap}
   .btn{
     min-width:62px;height:19px;padding:0 12px;border-radius:10px;border:0;
@@ -158,18 +187,20 @@
 
   <!-- 顶栏 -->
   <div class="topbar">
+    <div class="left">
     <div class="back" title="返回">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"/></svg>
+    </div>
     </div>
     <div class="title">健身房预约</div>
     <div class="right">
       <div class="ico">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div class="ico">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/>
         </svg>
       </div>
@@ -312,11 +343,11 @@ function toast(msg){
 /* ---------- 渲染：日期条 ---------- */
 function renderDates(){
   $('#dates').innerHTML = state.days.map((d, i) => `
-    <div class="day ${i === state.dayIndex ? 'sel' : ''} ${d.isPast ? 'past' : ''}" data-day="${i}">
+    <div class="day ${i === state.dayIndex ? 'sel' : ''}" data-day="${i}"><div class="box">
       <div class="w">${d.week}</div>
       <div class="d">${d.date}</div>
       <div class="s">${d.isPast ? '&nbsp;' : '可约'}</div>
-    </div>`).join('');
+    </div></div>`).join('');
 }
 
 /* ---------- 渲染：场次卡片 ---------- */
