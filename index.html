@@ -9,9 +9,13 @@
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest" id="manifestLink">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="screen-orientation" content="portrait">
+<meta name="x5-orientation" content="portrait">
+<meta name="full-screen" content="yes">
+<meta name="x5-fullscreen" content="true">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="icon-512.png" id="touchIcon">
+<link rel="apple-touch-icon" href="icon-192.png" id="touchIcon">
 <meta name="supported-color-schemes" content="light">
 <title>健身房预约</title>
 <style>
@@ -33,6 +37,7 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html{color-scheme:only light;-webkit-text-size-adjust:100%}
   html,body{margin:0;padding:0;background:#f1f1f3}
+  html{-webkit-text-size-adjust:100%}
   /* 让文档本身滚动：全屏 / 独立窗口 / 桌面浏览器行为都一致 */
   body{min-height:100vh;min-height:100dvh}
   body{
@@ -46,6 +51,7 @@
     width:100%;max-width:430px;min-height:100vh;min-height:100dvh;background:#fff;
     position:relative;margin:0 auto;
     padding:0 8px;box-sizing:border-box;      /* 两侧 8px 白边，像钉钉的容器留白 */
+    touch-action:pan-y;                        /* 显式允许纵向拖动，兼容小米/夸克内核 */
   }
 
   /* ============ 顶栏 ============ */
@@ -101,7 +107,11 @@
   }
 
   /* ============ 日期条 ============ */
-  .dates{display:flex;gap:0;padding:9px 6px 10px;background:#fff;overflow-x:auto}
+  .dates{
+    display:flex;gap:0;padding:9px 6px 10px;background:#fff;
+    overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;  /* 横滑不劫持纵向手势 */
+    -webkit-overflow-scrolling:touch;
+  }
   .dates::-webkit-scrollbar{display:none}
   .day{
     flex:1;min-width:0;display:flex;justify-content:center;cursor:pointer;color:#666;
@@ -522,6 +532,7 @@ fsBtn.addEventListener('click', async () => {
       if (el.requestFullscreen) await el.requestFullscreen({ navigationUI:'hide' });
       else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
       else return toast('当前浏览器不支持全屏');
+      try{ if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('portrait'); }catch(e){}
     }
   }catch(err){
     toast('这个浏览器不允许网页全屏');
@@ -532,6 +543,33 @@ document.addEventListener('fullscreenchange', syncFsBtn);
 document.addEventListener('webkitfullscreenchange', syncFsBtn);
 syncFsBtn();
 syncImmersive();
+
+/* ---------- 注册 Service Worker（PWA 可安装条件之一） ---------- */
+if (location.protocol === 'http:' || location.protocol === 'https:'){
+  if ('serviceWorker' in navigator){
+    addEventListener('load', function(){
+      navigator.serviceWorker.register('./sw.js').catch(function(){ /* 失败不影响使用 */ });
+    });
+  }
+}
+
+/* ---------- 调试面板：地址加 ?debug=1 ---------- */
+if (new URLSearchParams(location.search).get('debug') === '1'){
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;left:8px;bottom:86px;z-index:999;background:rgba(0,0,0,.78);'
+    + 'color:#fff;font:12px/1.7 -apple-system,monospace;padding:8px 12px;border-radius:8px;pointer-events:none';
+  document.body.appendChild(box);
+  const upd = () => {
+    const de = document.documentElement;
+    box.innerHTML = 'viewport ' + innerWidth + '×' + innerHeight
+      + '<br>内容高 ' + de.scrollHeight + '　可滚 ' + Math.max(0, de.scrollHeight - innerHeight)
+      + '<br>当前 y=' + Math.round(window.scrollY || 0)
+      + '<br>能滚? ' + (de.scrollHeight > innerHeight + 1 ? '是' : '否（内容没超出）');
+  };
+  upd();
+  addEventListener('scroll', upd, {passive:true});
+  addEventListener('resize', upd);
+}
 
 render();
 </script>
