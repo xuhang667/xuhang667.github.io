@@ -45,6 +45,7 @@
   .phone{
     width:100%;max-width:430px;min-height:100vh;min-height:100dvh;background:#fff;
     position:relative;margin:0 auto;
+    padding:0 8px;box-sizing:border-box;      /* 两侧 8px 白边，像钉钉的容器留白 */
   }
 
   /* ============ 顶栏 ============ */
@@ -53,7 +54,8 @@
     background:var(--topbar-bg);color:var(--topbar-fg);
     transition:background .2s,color .2s;
     display:flex;align-items:center;
-    padding:0 6px;
+    margin:0 -8px;
+    padding:0 8px 0 11px;
     /* 全屏时系统状态栏被隐藏，用 --statusbar 补出同样的黑边高度 */
     padding-top:var(--statusbar, 29px);   /* 与钉钉真机一致：状态栏 29 + 标题栏 58 = 87 */
     box-sizing:content-box;
@@ -82,7 +84,7 @@
   .banner{
     display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;
     /* 真机横幅比例 1080:388，比原图略扁，用 cover 裁一点保持比例一致 */
-    aspect-ratio:1080/400;object-fit:cover;object-position:center;
+    aspect-ratio:1028/400;object-fit:cover;object-position:center;  /* 真机：宽 1028 时高 400 */
   }
 
   /* ============ 标签 ============ */
@@ -117,26 +119,26 @@
   .day.sel .d,.day.sel .s{color:#fff}
 
   /* ============ 卡片列表 ============ */
-  .list{padding:21px 21px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;background:var(--page)}
+  .list{padding:21px 13px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:24px;background:var(--page)}
   .card{
-    background:#fff;border-radius:var(--radius);padding:12px 16px 28px;
+    background:#fff;border-radius:var(--radius);padding:12px 16px 14px;
     box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;
   }
   .card .head{display:flex;align-items:center;gap:11px;margin-bottom:19px}
   .dot{width:6px;height:6px;border-radius:50%;background:#f5a623;box-shadow:0 0 0 3px rgba(245,166,35,.18)}
-  .name{font-size:12.5px;font-weight:600;letter-spacing:.2px;line-height:18px}
+  .name{font-size:12.5px;font-weight:700;color:#000;letter-spacing:.2px;line-height:18px}
   .pill{
     margin-left:auto;margin-right:-16px;min-width:88px;height:20px;padding:0 10px;border-radius:10px 0 0 10px;
     display:flex;align-items:center;justify-content:center;
-    font-size:10px;color:#fff;background:var(--grey);white-space:nowrap;
+    font-size:10.5px;font-weight:600;color:#fff;background:var(--grey);white-space:nowrap;letter-spacing:.2px;
   }
   .pill.on{background:var(--blue)}
-  .time{display:flex;align-items:center;padding:0 31px 0 17px;font-size:12px;line-height:18px;color:#111}
+  .time{display:flex;align-items:center;padding:0 31px 0 17px;font-size:12px;line-height:18px;color:#111;font-weight:500}
   .time .t{width:58px;letter-spacing:.2px}
   .time .t:last-child{text-align:right}
   .arrow{flex:1;display:flex;align-items:center;padding:0 10px}
   .foot{
-    margin-top:19px;background:var(--bar);border-radius:5px;height:34px;
+    margin-top:20px;background:var(--bar);border-radius:5px;height:34px;
     display:flex;align-items:center;padding:0 12px 0 35px;font-size:12.5px;
   }
   .foot .gym{width:111px;white-space:nowrap}
@@ -373,8 +375,7 @@ function renderSlots(){
         <span class="t">${slot.start}</span>
         <span class="arrow">
           <svg width="100%" height="14" viewBox="0 0 200 14" preserveAspectRatio="none">
-            <line x1="2" y1="7" x2="176" y2="7" stroke="#30a6f0" stroke-width="2"/>
-            <polygon points="176,1 194,7 176,13" fill="#30a6f0"/>
+            <path d="M2 6 H172 V3 L200 8 H2 Z" fill="#30a6f0"/>
           </svg>
         </span>
         <span class="t">${slot.end}</span>
@@ -414,8 +415,7 @@ function renderMine(){
         <span class="t">${r.slot.start}</span>
         <span class="arrow">
           <svg width="100%" height="14" viewBox="0 0 200 14" preserveAspectRatio="none">
-            <line x1="2" y1="7" x2="176" y2="7" stroke="#30a6f0" stroke-width="2"/>
-            <polygon points="176,1 194,7 176,13" fill="#30a6f0"/>
+            <path d="M2 6 H172 V3 L200 8 H2 Z" fill="#30a6f0"/>
           </svg>
         </span>
         <span class="t">${r.slot.end}</span>
